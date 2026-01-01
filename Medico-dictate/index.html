@@ -53,7 +53,7 @@
             <header class="text-center mb-8 relative w-full max-w-7xl">
                 <div class="flex items-center justify-center gap-3 mb-2">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-sky-400">
-                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor"/>
+                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 12C16.41 20 12 20Z" fill="currentColor"/>
                         <path d="M12 8C11.45 8 11 8.45 11 9V15C11 15.55 11.45 16 12 16C12.55 16 13 15.55 13 15V9C13 8.45 12.55 8 12 8Z" fill="currentColor"/>
                         <path d="M16 12C16 12.55 15.55 13 15 13H9C8.45 13 8 12.55 8 12C8 11.45 8.45 11 9 11H15C15.55 11 16 11.45 16 12Z" fill="currentColor"/>
                     </svg>
@@ -66,78 +66,95 @@
                 </button>
             </header>
 
-            <main class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Dictation Card -->
-                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-700">
-                    <div class="p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <h2 class="text-xl font-semibold text-white">Live Dictation</h2>
-                            <div id="status-indicator" title="Status: Idle" class="w-5 h-5 bg-slate-500 rounded-full transition-all duration-300"></div>
+            <main class="w-full max-w-7xl flex flex-col gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Dictation Card -->
+                    <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-700">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-xl font-semibold text-white">Live Dictation</h2>
+                                <div id="status-indicator" title="Status: Idle" class="w-5 h-5 bg-slate-500 rounded-full transition-all duration-300"></div>
+                            </div>
+                            <div class="relative">
+                                <textarea id="dictation-box" class="w-full h-96 bg-slate-900 border border-slate-700 rounded-lg p-4 custom-scrollbar focus:outline-none focus:ring-2 focus:ring-sky-500 text-base" placeholder="Click 'Start Dictation' and begin speaking..."></textarea>
+                                <div id="interim-transcript" class="absolute bottom-4 left-4 text-sky-400 pointer-events-none italic opacity-70"></div>
+                            </div>
+                            <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                                <button id="start-btn" class="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg w-full sm:w-auto">
+                                    <i data-lucide="mic"></i>
+                                    <span>Start Dictation</span>
+                                </button>
+                                <button id="summarise-btn" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg disabled:bg-slate-600 disabled:cursor-not-allowed w-full sm:w-auto" disabled>
+                                    <i data-lucide="file-text"></i>
+                                    <span>Summarise</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="relative">
-                            <textarea id="dictation-box" class="w-full h-96 bg-slate-900 border border-slate-700 rounded-lg p-4 custom-scrollbar focus:outline-none focus:ring-2 focus:ring-sky-500 text-base" placeholder="Click 'Start Dictation' and begin speaking..."></textarea>
-                            <div id="interim-transcript" class="absolute bottom-4 left-4 text-sky-400 pointer-events-none italic opacity-70"></div>
-                        </div>
-                        <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
-                            <button id="start-btn" class="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                                <i data-lucide="mic"></i>
-                                <span>Start Dictation</span>
-                            </button>
-                             <button id="summarise-btn" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg disabled:bg-slate-600 disabled:cursor-not-allowed" disabled>
-                                <i data-lucide="file-text"></i>
-                                <span>Summarise</span>
-                            </button>
-                            <button id="clear-dictation-btn" class="flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                                <i data-lucide="trash-2"></i>
-                                <span>Clear</span>
-                            </button>
+                    </div>
+
+                    <!-- Summary Card -->
+                    <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-700">
+                        <div class="p-6 h-full flex flex-col">
+                            <div class="flex items-center justify-between mb-4 gap-2">
+                                <h2 class="text-xl font-semibold text-white">Structured Summary</h2>
+                            </div>
+                            
+                            <div id="summary-container" class="flex-grow bg-slate-900 border border-slate-700 rounded-lg p-4 custom-scrollbar overflow-y-auto relative min-h-[300px]">
+                                <div id="loading-skeleton" class="hidden space-y-4 animate-pulse">
+                                    <div class="space-y-2"><div class="h-4 bg-slate-700 rounded w-1/3"></div><div class="h-3 bg-slate-700 rounded w-full"></div></div>
+                                    <div class="space-y-2"><div class="h-4 bg-slate-700 rounded w-1/4"></div><div class="h-3 bg-slate-700 rounded w-full"></div></div>
+                                </div>
+                                <div id="summary-content"></div>
+                                <div id="initial-message" class="flex items-center justify-center h-full text-slate-500 text-center">
+                                    <p>Summarized notes will appear here after clicking 'Summarise'</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 items-center justify-center gap-2">
+                                <button id="copy-btn" class="flex items-center justify-center gap-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed" disabled>
+                                    <i data-lucide="copy" class="h-4 w-4"></i>
+                                    <span id="copy-text">Copy</span>
+                                </button>
+                                <button id="email-btn" class="flex items-center justify-center gap-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed" disabled>
+                                    <i data-lucide="mail" class="h-4 w-4"></i>
+                                    <span>Email</span>
+                                </button>
+                                <button id="save-word-btn" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed" disabled>
+                                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                                    <span>Word</span>
+                                </button>
+                                <button id="save-txt-btn" class="flex items-center justify-center gap-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed" disabled>
+                                    <i data-lucide="file" class="h-4 w-4"></i>
+                                    <span>Text</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Summary Card -->
-                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-700">
-                    <div class="p-6 h-full flex flex-col">
-                        <div class="flex items-center justify-between mb-4 gap-2">
-                            <h2 class="text-xl font-semibold text-white">Structured Summary</h2>
-                        </div>
-                        
-                        <div id="summary-container" class="flex-grow bg-slate-900 border border-slate-700 rounded-lg p-4 custom-scrollbar overflow-y-auto relative min-h-[300px]">
-                            <div id="loading-skeleton" class="hidden space-y-4 animate-pulse">
-                                <div class="space-y-2"><div class="h-4 bg-slate-700 rounded w-1/3"></div><div class="h-3 bg-slate-700 rounded w-full"></div></div>
-                                <div class="space-y-2"><div class="h-4 bg-slate-700 rounded w-1/4"></div><div class="h-3 bg-slate-700 rounded w-full"></div></div>
-                            </div>
-                            <div id="summary-content"></div>
-                            <div id="initial-message" class="flex items-center justify-center h-full text-slate-500 text-center">
-                                <p>Summarized notes will appear here after clicking 'Summarise'</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap items-center justify-center gap-2">
-                            <button id="copy-btn" class="flex items-center justify-center gap-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed grow sm:grow-0" disabled>
-                                <i data-lucide="copy" class="h-4 w-4"></i>
-                                <span id="copy-text">Copy</span>
-                            </button>
-                            <button id="email-btn" class="flex items-center justify-center gap-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed grow sm:grow-0" disabled>
-                                <i data-lucide="mail" class="h-4 w-4"></i>
-                                <span>Email</span>
-                            </button>
-                            <button id="save-word-btn" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed grow sm:grow-0" disabled>
-                                <i data-lucide="file-text" class="h-4 w-4"></i>
-                                <span>Word</span>
-                            </button>
-                            <button id="save-txt-btn" class="flex items-center justify-center gap-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed grow sm:grow-0" disabled>
-                                <i data-lucide="file" class="h-4 w-4"></i>
-                                <span>Text</span>
-                            </button>
-                            <button id="clear-summary-btn" class="flex items-center justify-center gap-2 bg-amber-700 hover:bg-amber-600 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed grow sm:grow-0" disabled>
-                                <i data-lucide="trash-2" class="h-4 w-4"></i>
-                                <span>Clear</span>
-                            </button>
-                        </div>
-                    </div>
+                <!-- Global Action Center -->
+                <div class="w-full flex justify-center pb-12">
+                    <button id="new-session-btn" class="flex items-center gap-3 bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 px-12 rounded-xl transition-all duration-200 shadow-xl border-2 border-amber-500/20 hover:scale-105 active:scale-95">
+                        <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                        <span class="text-lg">Start New Session</span>
+                    </button>
                 </div>
             </main>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden z-[100]">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center modal-enter">
+            <div class="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="alert-triangle" class="text-amber-500 w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Start New Session?</h3>
+            <p class="text-slate-400 mb-8 text-sm leading-relaxed">This will permanently clear both your current dictation and the structured summary. Ensure you have copied your notes if needed.</p>
+            <div class="flex flex-col gap-3">
+                <button id="confirm-new-btn" class="bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-lg">Yes, Clear Everything</button>
+                <button id="cancel-confirm-btn" class="text-slate-400 hover:text-white py-2 text-sm">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -166,7 +183,7 @@
     <div id="settings-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-lg shadow-xl w-full max-w-md p-6 modal-enter">
             <h3 class="text-lg font-medium leading-6 text-white mb-4">API Settings</h3>
-            <p class="text-sm text-slate-400 mb-4">Enter your Gemini API Key to enable summarisation. This key is stored only on your computer.</p>
+            <p class="text-sm text-slate-400 mb-4">Enter your Gemini API Key. This key is stored securely in your browser's local cache.</p>
             <div>
                 <label for="api-key-input" class="block text-sm font-medium text-slate-300">Gemini API Key</label>
                 <div class="mt-1 relative">
@@ -202,10 +219,12 @@
             const initialMessage = document.getElementById('initial-message');
             const copyText = document.getElementById('copy-text');
             const interimTranscriptEl = document.getElementById('interim-transcript');
-            const clearDictationBtn = document.getElementById('clear-dictation-btn');
-            const clearSummaryBtn = document.getElementById('clear-summary-btn');
+            const newSessionBtn = document.getElementById('new-session-btn');
             
             // Modal Elements
+            const confirmModal = document.getElementById('confirm-modal');
+            const confirmNewBtn = document.getElementById('confirm-new-btn');
+            const cancelConfirmBtn = document.getElementById('cancel-confirm-btn');
             const emailModal = document.getElementById('email-modal');
             const settingsModal = document.getElementById('settings-modal');
             const apiKeyInput = document.getElementById('api-key-input');
@@ -258,10 +277,9 @@
                 };
             }
 
-            // UI Actions
             function resetRecordingUI() {
                 statusIndicator.className = "w-5 h-5 bg-slate-500 rounded-full transition-all duration-300";
-                startBtn.className = "flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg";
+                startBtn.className = "flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg w-full sm:w-auto";
                 startBtn.innerHTML = '<i data-lucide="mic"></i><span>Start Dictation</span>';
                 lucide.createIcons();
             }
@@ -272,7 +290,7 @@
                     lastFinalPhrase = "";
                     recognition.start();
                     statusIndicator.className = "w-5 h-5 bg-red-500 rounded-full transition-all duration-300 glowing-border";
-                    startBtn.className = "flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg";
+                    startBtn.className = "flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg w-full sm:w-auto";
                     startBtn.innerHTML = '<i data-lucide="mic-off"></i><span>Stop Dictation</span>';
                     lucide.createIcons();
                 } else {
@@ -295,6 +313,37 @@
                 const type = apiKeyInput.type === 'password' ? 'text' : 'password';
                 apiKeyInput.type = type;
             });
+
+            // Global Session Management
+            newSessionBtn.addEventListener('click', () => {
+                if (dictationBox.value.trim().length > 0 || summaryContent.innerHTML.trim().length > 0) {
+                    confirmModal.classList.remove('hidden');
+                } else {
+                    clearAllData();
+                }
+            });
+
+            cancelConfirmBtn.addEventListener('click', () => confirmModal.classList.add('hidden'));
+            confirmNewBtn.addEventListener('click', () => {
+                clearAllData();
+                confirmModal.classList.add('hidden');
+            });
+
+            function clearAllData() {
+                // Stop recording if active
+                if (isRecording) {
+                    manualStop = true;
+                    recognition.stop();
+                }
+                // Clear UI
+                dictationBox.value = '';
+                interimTranscriptEl.textContent = '';
+                lastFinalPhrase = "";
+                summariseBtn.disabled = true;
+                summaryContent.innerHTML = '';
+                initialMessage.classList.remove('hidden');
+                toggleSummaryButtons(false);
+            }
 
             // Summary Logic
             summariseBtn.addEventListener('click', async () => {
@@ -323,16 +372,7 @@
 
             async function summarizeWithGemini(text, key) {
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
-                
-                const systemPrompt = `You are a medical transcription structuring tool. 
-                Task: Convert dictated notes into structured headers. 
-                STRICT RULE 1: ONLY include headers if they have content. If a section has no data, skip it entirely.
-                STRICT RULE 2: Keep 'History' and 'Examination' strictly separate. 
-                   - 'History' contains what the patient reports.
-                   - 'Examination Findings' contains ONLY objective physical signs found by the clinician. 
-                   - Do not mention historical complaints in the examination section.
-                Order: Presenting Complaint, History of Presenting Complaint, Past Medical History, Regular Medications, Family History, Social History, Examination Findings, Investigations, Diagnosis, Plan.
-                Format: Plain text headers. No markdown bolding.`;
+                const systemPrompt = `You are a medical transcription structuring tool. Task: Convert notes into headers. Headers: Presenting Complaint, History of Presenting Complaint, Past Medical History, Regular Medications, Family History, Social History, Examination Findings, Investigations, Diagnosis, Plan. Skip empty sections. STRICT: No overlap between History and Examination. Format: Plain text headers.`;
                 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -342,56 +382,29 @@
                         contents: [{ parts: [{ text: text }] }]
                     })
                 });
-
-                if (!response.ok) throw new Error("API Key might be invalid or expired.");
-                
+                if (!response.ok) throw new Error("API Connection Failed.");
                 const result = await response.json();
                 return result.candidates?.[0]?.content?.parts?.[0]?.text || "";
             }
 
             function displaySummary(summaryText) {
                 summaryContent.innerHTML = '';
+                const lines = summaryText.split('\n');
                 const headings = ["Presenting Complaint", "History of Presenting Complaint", "Past Medical History", "Regular Medications", "Family History", "Social History", "Examination Findings", "Investigations", "Diagnosis", "Plan"];
                 
-                const lines = summaryText.split('\n');
-                let hasCurrentContent = false;
-                let lastHeadingEl = null;
-
                 lines.forEach(line => {
                     const clean = line.trim().replace(/\*\*/g, '');
                     if (!clean) return;
-
                     const isHeading = headings.some(h => clean.toLowerCase().startsWith(h.toLowerCase()));
-                    
-                    if (isHeading) {
-                        // If we are moving to a new heading, check if the previous one actually got content
-                        if (lastHeadingEl && !hasCurrentContent) {
-                            lastHeadingEl.remove();
-                        }
-                        
-                        lastHeadingEl = document.createElement('h3');
-                        lastHeadingEl.textContent = clean.replace(/:$/, '');
-                        lastHeadingEl.className = 'summary-heading text-sky-300 mt-4 mb-2';
-                        summaryContent.appendChild(lastHeadingEl);
-                        hasCurrentContent = false; // Reset for this new heading
-                    } else {
-                        const p = document.createElement('p');
-                        p.textContent = clean;
-                        p.className = 'text-slate-300 mb-2 whitespace-pre-wrap';
-                        summaryContent.appendChild(p);
-                        hasCurrentContent = true;
-                    }
+                    const el = document.createElement(isHeading ? 'h3' : 'p');
+                    el.className = isHeading ? 'summary-heading text-sky-300 mt-4 mb-2' : 'text-slate-300 mb-2 whitespace-pre-wrap';
+                    el.textContent = clean.replace(/:$/, '');
+                    summaryContent.appendChild(el);
                 });
-
-                // Final cleanup for the very last heading
-                if (lastHeadingEl && !hasCurrentContent) {
-                    lastHeadingEl.remove();
-                }
             }
 
-            // Export Actions
             function toggleSummaryButtons(hasContent) {
-                [copyBtn, clearSummaryBtn, emailBtn, saveWordBtn, saveTxtBtn].forEach(btn => btn.disabled = !hasContent);
+                [copyBtn, emailBtn, saveWordBtn, saveTxtBtn].forEach(btn => btn.disabled = !hasContent);
             }
 
             copyBtn.addEventListener('click', () => {
@@ -402,10 +415,7 @@
                 });
             });
 
-            saveTxtBtn.addEventListener('click', () => {
-                downloadFile(formatSummaryForCopy(summaryContent.innerHTML), 'Clinical_Summary.txt', 'text/plain');
-            });
-
+            saveTxtBtn.addEventListener('click', () => downloadFile(formatSummaryForCopy(summaryContent.innerHTML), 'Clinical_Summary.txt', 'text/plain'));
             saveWordBtn.addEventListener('click', () => {
                 const html = `<html><body style="font-family:Arial"><h3>Clinical Summary</h3>${summaryContent.innerHTML}</body></html>`;
                 downloadFile(html, 'Clinical_Summary.doc', 'application/msword');
@@ -430,20 +440,6 @@
                 return text.trim();
             }
 
-            // General Cleanup
-            clearDictationBtn.addEventListener('click', () => {
-                dictationBox.value = '';
-                interimTranscriptEl.textContent = '';
-                lastFinalPhrase = "";
-                summariseBtn.disabled = true;
-            });
-
-            clearSummaryBtn.addEventListener('click', () => {
-                summaryContent.innerHTML = '';
-                initialMessage.classList.remove('hidden');
-                toggleSummaryButtons(false);
-            });
-            
             // Email Logic
             emailBtn.addEventListener('click', () => {
                 const saved = localStorage.getItem('medicoDictateEmail');
@@ -456,7 +452,6 @@
                 const email = emailInput.value.trim();
                 if (!email.includes('@')) return;
                 if (rememberEmailCheckbox.checked) localStorage.setItem('medicoDictateEmail', email);
-                else localStorage.removeItem('medicoDictateEmail');
                 window.location.href = `mailto:${email}?subject=Clinical Summary&body=${encodeURIComponent(formatSummaryForCopy(summaryContent.innerHTML))}`;
                 emailModal.classList.add('hidden');
             });
