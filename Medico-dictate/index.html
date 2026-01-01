@@ -37,6 +37,28 @@
         .summary-heading {
             font-weight: bold;
             text-decoration: underline;
+            color: #7dd3fc; /* sky-300 */
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        /* Style for editable summary area */
+        #summary-content {
+            outline: none;
+            white-space: pre-wrap;
+            min-height: 100%;
+        }
+        #summary-content:focus {
+            background-color: rgba(30, 41, 59, 0.3);
+        }
+        /* Highlight for potential typos/uncertain words */
+        .typo-warning {
+            background-color: #fef3c7; /* amber-100 */
+            color: #92400e; /* amber-800 */
+            border-bottom: 2px dashed #f59e0b;
+            padding: 0 2px;
+            border-radius: 2px;
+            font-weight: 500;
         }
         .modal-enter {
             animation: fadeIn 0.2s ease-out;
@@ -96,7 +118,7 @@
                     <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-700">
                         <div class="p-6 h-full flex flex-col">
                             <div class="flex items-center justify-between mb-4 gap-2">
-                                <h2 class="text-xl font-semibold text-white">Structured Summary</h2>
+                                <h2 class="text-xl font-semibold text-white">Structured Summary <span class="text-xs font-normal text-slate-400 ml-2">(Editable)</span></h2>
                             </div>
                             
                             <div id="summary-container" class="flex-grow bg-slate-900 border border-slate-700 rounded-lg p-4 custom-scrollbar overflow-y-auto relative min-h-[300px]">
@@ -104,8 +126,8 @@
                                     <div class="space-y-2"><div class="h-4 bg-slate-700 rounded w-1/3"></div><div class="h-3 bg-slate-700 rounded w-full"></div></div>
                                     <div class="space-y-2"><div class="h-4 bg-slate-700 rounded w-1/4"></div><div class="h-3 bg-slate-700 rounded w-full"></div></div>
                                 </div>
-                                <div id="summary-content"></div>
-                                <div id="initial-message" class="flex items-center justify-center h-full text-slate-500 text-center">
+                                <div id="summary-content" contenteditable="true" class="text-slate-300 outline-none"></div>
+                                <div id="initial-message" class="flex items-center justify-center h-full text-slate-500 text-center absolute inset-0 pointer-events-none">
                                     <p>Summarized notes will appear here after clicking 'Summarise'</p>
                                 </div>
                             </div>
@@ -316,7 +338,7 @@
 
             // Global Session Management
             newSessionBtn.addEventListener('click', () => {
-                if (dictationBox.value.trim().length > 0 || summaryContent.innerHTML.trim().length > 0) {
+                if (dictationBox.value.trim().length > 0 || summaryContent.innerText.trim().length > 0) {
                     confirmModal.classList.remove('hidden');
                 } else {
                     clearAllData();
@@ -330,12 +352,10 @@
             });
 
             function clearAllData() {
-                // Stop recording if active
                 if (isRecording) {
                     manualStop = true;
                     recognition.stop();
                 }
-                // Clear UI
                 dictationBox.value = '';
                 interimTranscriptEl.textContent = '';
                 lastFinalPhrase = "";
@@ -366,13 +386,23 @@
                     summaryContent.innerHTML = `<p class="text-red-400">Error: ${error.message || 'Could not generate summary.'}</p>`;
                 } finally {
                     loadingSkeleton.classList.add('hidden');
-                    toggleSummaryButtons(summaryContent.innerHTML.trim().length > 0);
+                    toggleSummaryButtons(summaryContent.innerText.trim().length > 0);
                 }
             });
 
             async function summarizeWithGemini(text, key) {
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
-                const systemPrompt = `You are a medical transcription structuring tool. Task: Convert notes into headers. Headers: Presenting Complaint, History of Presenting Complaint, Past Medical History, Regular Medications, Family History, Social History, Examination Findings, Investigations, Diagnosis, Plan. Skip empty sections. STRICT: No overlap between History and Examination. Format: Plain text headers.`;
+                
+                // Enhanced system prompt for highlighting
+                const systemPrompt = `You are a medical transcription structuring tool. 
+                Task: Convert spoken clinical notes into structured headers.
+                Headers: Presenting Complaint, History of Presenting Complaint, Past Medical History, Regular Medications, Family History, Social History, Examination Findings, Investigations, Diagnosis, Plan.
+                
+                STRICT RULES:
+                1. Skip empty sections.
+                2. If you encounter a word that sounds ambiguous, phonetically unclear, or looks like a typo in context (e.g., 'muffled drug names', 'hear attack' vs 'heart attack'), wrap it in triple angle brackets like this: <<<ambiguous word>>>.
+                3. Do not omit potentially important information even if poorly dictated; highlight it instead.
+                4. Maintain clinical terminology.`;
                 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -393,13 +423,25 @@
                 const headings = ["Presenting Complaint", "History of Presenting Complaint", "Past Medical History", "Regular Medications", "Family History", "Social History", "Examination Findings", "Investigations", "Diagnosis", "Plan"];
                 
                 lines.forEach(line => {
-                    const clean = line.trim().replace(/\*\*/g, '');
+                    let clean = line.trim().replace(/\*\*/g, '');
                     if (!clean) return;
+
+                    // Process AI highlighting: convert <<<text>>> to span
+                    clean = clean.replace(/<<<(.*?)>>>/g, '<span class="typo-warning" title="Possible dictation error - verify">$1</span>');
+
                     const isHeading = headings.some(h => clean.toLowerCase().startsWith(h.toLowerCase()));
-                    const el = document.createElement(isHeading ? 'h3' : 'p');
-                    el.className = isHeading ? 'summary-heading text-sky-300 mt-4 mb-2' : 'text-slate-300 mb-2 whitespace-pre-wrap';
-                    el.textContent = clean.replace(/:$/, '');
-                    summaryContent.appendChild(el);
+                    
+                    if (isHeading) {
+                        const el = document.createElement('h3');
+                        el.className = 'summary-heading';
+                        el.textContent = clean.replace(/:$/, '');
+                        summaryContent.appendChild(el);
+                    } else {
+                        const el = document.createElement('p');
+                        el.className = 'mb-2 text-slate-300';
+                        el.innerHTML = clean;
+                        summaryContent.appendChild(el);
+                    }
                 });
             }
 
@@ -407,15 +449,31 @@
                 [copyBtn, emailBtn, saveWordBtn, saveTxtBtn].forEach(btn => btn.disabled = !hasContent);
             }
 
+            // Clean text for export (removes HTML tags and cleans up AI markers)
+            function getExportableText() {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = summaryContent.innerHTML;
+                
+                let text = '';
+                tempDiv.childNodes.forEach(n => {
+                    if (n.nodeName === 'H3') {
+                        text += `\n${n.textContent}\n${'-'.repeat(n.textContent.length)}\n`;
+                    } else if (n.nodeName === 'P' || n.nodeName === 'DIV') {
+                        text += `${n.textContent}\n`;
+                    }
+                });
+                return text.trim();
+            }
+
             copyBtn.addEventListener('click', () => {
-                const text = formatSummaryForCopy(summaryContent.innerHTML);
+                const text = getExportableText();
                 navigator.clipboard.writeText(text).then(() => {
                     copyText.textContent = 'Copied!';
                     setTimeout(() => { copyText.textContent = 'Copy'; }, 2000);
                 });
             });
 
-            saveTxtBtn.addEventListener('click', () => downloadFile(formatSummaryForCopy(summaryContent.innerHTML), 'Clinical_Summary.txt', 'text/plain'));
+            saveTxtBtn.addEventListener('click', () => downloadFile(getExportableText(), 'Clinical_Summary.txt', 'text/plain'));
             saveWordBtn.addEventListener('click', () => {
                 const html = `<html><body style="font-family:Arial"><h3>Clinical Summary</h3>${summaryContent.innerHTML}</body></html>`;
                 downloadFile(html, 'Clinical_Summary.doc', 'application/msword');
@@ -427,17 +485,6 @@
                 const a = document.createElement('a');
                 a.href = url; a.download = name; a.click();
                 URL.revokeObjectURL(url);
-            }
-
-            function formatSummaryForCopy(html) {
-                const div = document.createElement('div');
-                div.innerHTML = html;
-                let text = '';
-                div.childNodes.forEach(n => {
-                    if (n.nodeName === 'H3') text += `\n${n.textContent}\n${'-'.repeat(n.textContent.length)}\n`;
-                    else if (n.nodeName === 'P') text += `${n.textContent}\n`;
-                });
-                return text.trim();
             }
 
             // Email Logic
@@ -452,7 +499,7 @@
                 const email = emailInput.value.trim();
                 if (!email.includes('@')) return;
                 if (rememberEmailCheckbox.checked) localStorage.setItem('medicoDictateEmail', email);
-                window.location.href = `mailto:${email}?subject=Clinical Summary&body=${encodeURIComponent(formatSummaryForCopy(summaryContent.innerHTML))}`;
+                window.location.href = `mailto:${email}?subject=Clinical Summary&body=${encodeURIComponent(getExportableText())}`;
                 emailModal.classList.add('hidden');
             });
         });
