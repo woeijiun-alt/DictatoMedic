@@ -3,510 +3,506 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medical Dictation Tool</title>
+    <title>MedicoDictate - AI Medical Dictation Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* slate-900 */
         }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
         }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b; /* slate-800 */
         }
-
-        .header h1 {
-            font-size: 2em;
-            margin-bottom: 10px;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569; /* slate-600 */
+            border-radius: 4px;
         }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1em;
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* slate-500 */
         }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            padding: 30px;
-        }
-
-        .panel {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 25px;
-        }
-
-        .panel h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-
-        .dictation-box {
-            width: 100%;
-            min-height: 300px;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1em;
-            font-family: inherit;
-            resize: vertical;
-            transition: border-color 0.3s;
-            background: white;
-        }
-
-        .dictation-box:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        button {
-            flex: 1;
-            padding: 15px;
-            font-size: 1.1em;
-            font-weight: 600;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-record {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-record:hover:not(:disabled) {
-            background: #059669;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-record.recording {
-            background: #ef4444;
+        .glowing-border {
+            box-shadow: 0 0 15px 2px rgba(255, 0, 0, 0.6);
             animation: pulse 1.5s infinite;
         }
-
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            0% { box-shadow: 0 0 15px 2px rgba(255, 0, 0, 0.6); }
+            50% { box-shadow: 0 0 20px 5px rgba(255, 0, 0, 0.8); }
+            100% { box-shadow: 0 0 15px 2px rgba(255, 0, 0, 0.6); }
         }
-
-        .btn-stop {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-stop:hover:not(:disabled) {
-            background: #4b5563;
-        }
-
-        .btn-stop:disabled {
-            background: #d1d5db;
-            cursor: not-allowed;
-        }
-
-        .btn-generate {
-            background: #8b5cf6;
-            color: white;
-            grid-column: 1 / -1;
-        }
-
-        .btn-generate:hover:not(:disabled) {
-            background: #7c3aed;
-        }
-
-        .btn-generate:disabled {
-            background: #d1d5db;
-            cursor: not-allowed;
-        }
-
-        .btn-clear {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .btn-clear:hover {
-            background: #d97706;
-        }
-
-        .btn-copy {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-copy:hover {
-            background: #5568d3;
-        }
-
-        .status {
-            text-align: center;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-weight: 600;
-        }
-
-        .status.idle {
-            background: #e5e7eb;
-            color: #6b7280;
-        }
-
-        .status.recording {
-            background: #fef2f2;
-            color: #ef4444;
-        }
-
-        .status.processing {
-            background: #eff6ff;
-            color: #3b82f6;
-        }
-
-        .summary-output {
-            width: 100%;
-            min-height: 500px;
-            max-height: 70vh;
-            overflow-y: auto;
-            padding: 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            background: white;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
-
-        .summary-output.empty {
-            color: #9ca3af;
-            font-style: italic;
-        }
-
-        .info-box {
-            background: #eff6ff;
-            border-left: 4px solid #3b82f6;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-
-        .info-box p {
-            color: #1e40af;
-            line-height: 1.6;
-            margin-bottom: 8px;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .loading.active {
+        .summary-heading {
+            font-weight: bold;
+            text-decoration: underline;
+            color: #7dd3fc; /* sky-300 */
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
             display: block;
         }
-
-        .spinner {
-            border: 4px solid #f3f4f6;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+        /* Style for editable summary area */
+        #summary-content {
+            outline: none;
+            white-space: pre-wrap;
+            min-height: 100%;
         }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        #summary-content:focus {
+            background-color: rgba(30, 41, 59, 0.3);
         }
-
-        @media (max-width: 968px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
+        /* Highlight for potential typos/uncertain words */
+        .typo-warning {
+            background-color: #fef3c7; /* amber-100 */
+            color: #92400e; /* amber-800 */
+            border-bottom: 2px dashed #f59e0b;
+            padding: 0 2px;
+            border-radius: 2px;
+            font-weight: 500;
+        }
+        .modal-enter {
+            animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎤 Medical Dictation Tool</h1>
-            <p>Dictate freely - AI organizes into clinical sections</p>
-        </div>
-
-        <div class="main-content">
-            <div class="panel">
-                <h2>Free Dictation</h2>
+<body class="text-slate-200">
+    <div id="app-container">
+        <div class="min-h-screen bg-slate-900 flex flex-col items-center p-4 py-8">
+            <header class="text-center mb-8 relative w-full max-w-7xl">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-sky-400">
+                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 12C16.41 20 12 20Z" fill="currentColor"/>
+                        <path d="M12 8C11.45 8 11 8.45 11 9V15C11 15.55 11.45 16 12 16C12.55 16 13 15.55 13 15V9C13 8.45 12.55 8 12 8Z" fill="currentColor"/>
+                        <path d="M16 12C16 12.55 15.55 13 15 13H9C8.45 13 8 12.55 8 12C8 11.45 8.45 11 9 11H15C15.55 11 16 11.45 16 12Z" fill="currentColor"/>
+                    </svg>
+                    <h1 class="text-4xl font-bold text-white tracking-tight">MedicoDictate</h1>
+                </div>
+                <p class="text-lg text-slate-400">AI-Powered Clinical Dictation Assistant</p>
                 
-                <textarea class="dictation-box" id="dictationText" placeholder="Click 'Start Recording' and speak your clinical notes naturally. Include presenting complaint, history, examination findings, diagnosis, and management plan. The AI will organize everything into proper sections."></textarea>
+                <button id="open-settings-btn" class="absolute right-0 top-0 p-2 text-slate-400 hover:text-white transition-colors">
+                    <i data-lucide="settings" class="w-6 h-6"></i>
+                </button>
+            </header>
 
-                <div class="button-group">
-                    <button class="btn-record" id="recordBtn" onclick="toggleRecording()">
-                        Start Recording
+            <main class="w-full max-w-7xl flex flex-col gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Dictation Card -->
+                    <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-700">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-xl font-semibold text-white">Live Dictation</h2>
+                                <div id="status-indicator" title="Status: Idle" class="w-5 h-5 bg-slate-500 rounded-full transition-all duration-300"></div>
+                            </div>
+                            <div class="relative">
+                                <textarea id="dictation-box" class="w-full h-96 bg-slate-900 border border-slate-700 rounded-lg p-4 custom-scrollbar focus:outline-none focus:ring-2 focus:ring-sky-500 text-base" placeholder="Click 'Start Dictation' and begin speaking..."></textarea>
+                                <div id="interim-transcript" class="absolute bottom-4 left-4 text-sky-400 pointer-events-none italic opacity-70"></div>
+                            </div>
+                            <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                                <button id="start-btn" class="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg w-full sm:w-auto">
+                                    <i data-lucide="mic"></i>
+                                    <span>Start Dictation</span>
+                                </button>
+                                <button id="summarise-btn" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg disabled:bg-slate-600 disabled:cursor-not-allowed w-full sm:w-auto" disabled>
+                                    <i data-lucide="file-text"></i>
+                                    <span>Summarise</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Card -->
+                    <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-700">
+                        <div class="p-6 h-full flex flex-col">
+                            <div class="flex items-center justify-between mb-4 gap-2">
+                                <h2 class="text-xl font-semibold text-white">Structured Summary <span class="text-xs font-normal text-slate-400 ml-2">(Editable)</span></h2>
+                            </div>
+                            
+                            <div id="summary-container" class="flex-grow bg-slate-900 border border-slate-700 rounded-lg p-4 custom-scrollbar overflow-y-auto relative min-h-[300px]">
+                                <div id="loading-skeleton" class="hidden space-y-4 animate-pulse">
+                                    <div class="space-y-2"><div class="h-4 bg-slate-700 rounded w-1/3"></div><div class="h-3 bg-slate-700 rounded w-full"></div></div>
+                                    <div class="space-y-2"><div class="h-4 bg-slate-700 rounded w-1/4"></div><div class="h-3 bg-slate-700 rounded w-full"></div></div>
+                                </div>
+                                <div id="summary-content" contenteditable="true" class="text-slate-300 outline-none"></div>
+                                <div id="initial-message" class="flex items-center justify-center h-full text-slate-500 text-center absolute inset-0 pointer-events-none">
+                                    <p>Summarized notes will appear here after clicking 'Summarise'</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 items-center justify-center gap-2">
+                                <button id="copy-btn" class="flex items-center justify-center gap-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed" disabled>
+                                    <i data-lucide="copy" class="h-4 w-4"></i>
+                                    <span id="copy-text">Copy</span>
+                                </button>
+                                <button id="email-btn" class="flex items-center justify-center gap-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed" disabled>
+                                    <i data-lucide="mail" class="h-4 w-4"></i>
+                                    <span>Email</span>
+                                </button>
+                                <button id="save-word-btn" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed" disabled>
+                                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                                    <span>Word</span>
+                                </button>
+                                <button id="save-txt-btn" class="flex items-center justify-center gap-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 text-sm disabled:bg-slate-700 disabled:cursor-not-allowed" disabled>
+                                    <i data-lucide="file" class="h-4 w-4"></i>
+                                    <span>Text</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Global Action Center -->
+                <div class="w-full flex justify-center pb-12">
+                    <button id="new-session-btn" class="flex items-center gap-3 bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 px-12 rounded-xl transition-all duration-200 shadow-xl border-2 border-amber-500/20 hover:scale-105 active:scale-95">
+                        <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                        <span class="text-lg">Start New Session</span>
                     </button>
-                    <button class="btn-stop" id="stopBtn" onclick="stopRecording()" disabled>
-                        Stop
-                    </button>
                 </div>
+            </main>
+        </div>
+    </div>
 
-                <div class="status idle" id="status">
-                    Ready to record
-                </div>
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden z-[100]">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center modal-enter">
+            <div class="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="alert-triangle" class="text-amber-500 w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Start New Session?</h3>
+            <p class="text-slate-400 mb-8 text-sm leading-relaxed">This will permanently clear both your current dictation and the structured summary. Ensure you have copied your notes if needed.</p>
+            <div class="flex flex-col gap-3">
+                <button id="confirm-new-btn" class="bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-lg">Yes, Clear Everything</button>
+                <button id="cancel-confirm-btn" class="text-slate-400 hover:text-white py-2 text-sm">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-                <div class="button-group" style="margin-top: 20px;">
-                    <button class="btn-generate" id="generateBtn" onclick="generateSummary()">
-                        Generate Structured Summary
-                    </button>
-                </div>
-
-                <div class="info-box">
-                    <p><strong>How it works:</strong></p>
-                    <p>1. Click "Start Recording" and dictate your clinical notes naturally</p>
-                    <p>2. Click "Stop" when finished</p>
-                    <p>3. Click "Generate Structured Summary" to organize your notes</p>
-                    <p>4. Claude AI will automatically structure your dictation into clinical sections</p>
-                </div>
-
-                <div class="loading" id="loading">
-                    <div class="spinner"></div>
-                    <p>AI is organizing your clinical notes...</p>
+    <!-- Email Modal -->
+    <div id="email-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-lg shadow-xl w-full max-w-md p-6 modal-enter">
+            <h3 class="text-lg font-medium leading-6 text-white mb-4">Email Summary</h3>
+            <div>
+                <label for="email-input" class="block text-sm font-medium text-slate-300">Recipient's Email</label>
+                <div class="mt-1">
+                    <input type="email" id="email-input" class="block w-full rounded-md border-slate-600 bg-slate-900 text-slate-200 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2" placeholder="you@example.com">
                 </div>
             </div>
+            <div class="mt-4 flex items-center">
+                <input id="remember-email-checkbox" type="checkbox" class="h-4 w-4 rounded border-slate-500 bg-slate-700 text-sky-600">
+                <label for="remember-email-checkbox" class="ml-2 block text-sm text-slate-300">Remember this email for future use</label>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" id="cancel-email-btn" class="rounded-md border border-gray-500 px-4 py-2 text-sm text-white hover:bg-slate-700">Cancel</button>
+                <button type="button" id="send-email-btn" class="rounded-md bg-sky-600 px-4 py-2 text-sm text-white hover:bg-sky-500">Send</button>
+            </div>
+        </div>
+    </div>
 
-            <div class="panel">
-                <h2>Structured Clinical Summary</h2>
-                
-                <div class="summary-output empty" id="summaryOutput">
-                    Your structured clinical summary will appear here after generating...
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-lg shadow-xl w-full max-w-md p-6 modal-enter">
+            <h3 class="text-lg font-medium leading-6 text-white mb-4">API Settings</h3>
+            <p class="text-sm text-slate-400 mb-4">Enter your Gemini API Key. This key is stored securely in your browser's local cache.</p>
+            <div>
+                <label for="api-key-input" class="block text-sm font-medium text-slate-300">Gemini API Key</label>
+                <div class="mt-1 relative">
+                    <input type="password" id="api-key-input" class="block w-full rounded-md border-slate-600 bg-slate-900 text-slate-200 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2 pr-10" placeholder="AIzaSy...">
+                    <button id="toggle-api-visibility" class="absolute right-2 top-2 text-slate-500 hover:text-slate-300">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
+                    </button>
                 </div>
-
-                <div class="button-group" style="margin-top: 20px;">
-                    <button class="btn-clear" onclick="clearAll()">Clear All</button>
-                    <button class="btn-copy" onclick="copyToClipboard()">Copy Summary</button>
-                </div>
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-xs text-sky-400 hover:underline mt-2 block">Get a free API key here</a>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" id="close-settings-btn" class="rounded-md border border-gray-500 px-4 py-2 text-sm text-white hover:bg-slate-700">Cancel</button>
+                <button type="button" id="save-settings-btn" class="rounded-md bg-sky-600 px-4 py-2 text-sm text-white hover:bg-sky-500">Save Key</button>
             </div>
         </div>
     </div>
 
     <script>
-        let recognition;
-        let isRecording = false;
-        let finalTranscript = '';
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
 
-        // Initialize speech recognition
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            // UI Elements
+            const startBtn = document.getElementById('start-btn');
+            const summariseBtn = document.getElementById('summarise-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const emailBtn = document.getElementById('email-btn');
+            const saveWordBtn = document.getElementById('save-word-btn');
+            const saveTxtBtn = document.getElementById('save-txt-btn');
+            const dictationBox = document.getElementById('dictation-box');
+            const summaryContent = document.getElementById('summary-content');
+            const statusIndicator = document.getElementById('status-indicator');
+            const loadingSkeleton = document.getElementById('loading-skeleton');
+            const initialMessage = document.getElementById('initial-message');
+            const copyText = document.getElementById('copy-text');
+            const interimTranscriptEl = document.getElementById('interim-transcript');
+            const newSessionBtn = document.getElementById('new-session-btn');
+            
+            // Modal Elements
+            const confirmModal = document.getElementById('confirm-modal');
+            const confirmNewBtn = document.getElementById('confirm-new-btn');
+            const cancelConfirmBtn = document.getElementById('cancel-confirm-btn');
+            const emailModal = document.getElementById('email-modal');
+            const settingsModal = document.getElementById('settings-modal');
+            const apiKeyInput = document.getElementById('api-key-input');
+            const emailInput = document.getElementById('email-input');
+            const rememberEmailCheckbox = document.getElementById('remember-email-checkbox');
+
+            // Speech Logic
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'en-GB';
+            let recognition;
+            let isRecording = false;
+            let manualStop = false;
+            let lastFinalPhrase = "";
 
-            recognition.onstart = () => {
-                console.log('Speech recognition started');
-                updateStatus('Recording...', 'recording');
-            };
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.interimResults = true;
+                recognition.continuous = true;
+                recognition.lang = 'en-GB';
 
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalTranscript += transcript + ' ';
-                    } else {
-                        interimTranscript += transcript;
+                recognition.onstart = () => { isRecording = true; };
+                recognition.onend = () => {
+                    isRecording = false;
+                    if (!manualStop && recognition) {
+                        try { recognition.start(); } catch(e) { resetRecordingUI(); }
+                    } else { resetRecordingUI(); }
+                };
+
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    let newFinalPhrases = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        const transcriptSegment = event.results[i][0].transcript.trim();
+                        if (event.results[i].isFinal) {
+                            if (transcriptSegment !== lastFinalPhrase) {
+                                newFinalPhrases += transcriptSegment + '. ';
+                                lastFinalPhrase = transcriptSegment;
+                            }
+                        } else {
+                            interimTranscript += transcriptSegment + ' ';
+                        }
                     }
-                }
 
-                document.getElementById('dictationText').value = finalTranscript + interimTranscript;
-            };
+                    if (newFinalPhrases) {
+                        dictationBox.value += (dictationBox.value.endsWith(' ') ? '' : ' ') + newFinalPhrases;
+                        dictationBox.scrollTop = dictationBox.scrollHeight;
+                    }
+                    interimTranscriptEl.textContent = interimTranscript;
+                    summariseBtn.disabled = dictationBox.value.trim().length === 0;
+                };
+            }
 
-            recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                updateStatus('Error: ' + event.error, 'idle');
-                stopRecording();
-            };
+            function resetRecordingUI() {
+                statusIndicator.className = "w-5 h-5 bg-slate-500 rounded-full transition-all duration-300";
+                startBtn.className = "flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg w-full sm:w-auto";
+                startBtn.innerHTML = '<i data-lucide="mic"></i><span>Start Dictation</span>';
+                lucide.createIcons();
+            }
 
-            recognition.onend = () => {
-                if (isRecording) {
+            startBtn.addEventListener('click', () => {
+                if (!isRecording) {
+                    manualStop = false;
+                    lastFinalPhrase = "";
                     recognition.start();
+                    statusIndicator.className = "w-5 h-5 bg-red-500 rounded-full transition-all duration-300 glowing-border";
+                    startBtn.className = "flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg w-full sm:w-auto";
+                    startBtn.innerHTML = '<i data-lucide="mic-off"></i><span>Stop Dictation</span>';
+                    lucide.createIcons();
                 } else {
-                    updateStatus('Ready to record', 'idle');
+                    manualStop = true;
+                    recognition.stop();
                 }
-            };
-        } else {
-            alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
-        }
+            });
 
-        function toggleRecording() {
-            if (!recognition) {
-                alert('Speech recognition not available');
-                return;
+            // Settings Logic
+            document.getElementById('open-settings-btn').addEventListener('click', () => {
+                apiKeyInput.value = localStorage.getItem('medico_gemini_key') || '';
+                settingsModal.classList.remove('hidden');
+            });
+            document.getElementById('close-settings-btn').addEventListener('click', () => settingsModal.classList.add('hidden'));
+            document.getElementById('save-settings-btn').addEventListener('click', () => {
+                localStorage.setItem('medico_gemini_key', apiKeyInput.value.trim());
+                settingsModal.classList.add('hidden');
+            });
+            document.getElementById('toggle-api-visibility').addEventListener('click', () => {
+                const type = apiKeyInput.type === 'password' ? 'text' : 'password';
+                apiKeyInput.type = type;
+            });
+
+            // Global Session Management
+            newSessionBtn.addEventListener('click', () => {
+                if (dictationBox.value.trim().length > 0 || summaryContent.innerText.trim().length > 0) {
+                    confirmModal.classList.remove('hidden');
+                } else {
+                    clearAllData();
+                }
+            });
+
+            cancelConfirmBtn.addEventListener('click', () => confirmModal.classList.add('hidden'));
+            confirmNewBtn.addEventListener('click', () => {
+                clearAllData();
+                confirmModal.classList.add('hidden');
+            });
+
+            function clearAllData() {
+                if (isRecording) {
+                    manualStop = true;
+                    recognition.stop();
+                }
+                dictationBox.value = '';
+                interimTranscriptEl.textContent = '';
+                lastFinalPhrase = "";
+                summariseBtn.disabled = true;
+                summaryContent.innerHTML = '';
+                initialMessage.classList.remove('hidden');
+                toggleSummaryButtons(false);
             }
 
-            if (!isRecording) {
-                isRecording = true;
-                finalTranscript = document.getElementById('dictationText').value;
+            // Summary Logic
+            summariseBtn.addEventListener('click', async () => {
+                const key = localStorage.getItem('medico_gemini_key');
+                if (!key) {
+                    settingsModal.classList.remove('hidden');
+                    return;
+                }
+
+                const text = dictationBox.value.trim();
+                summaryContent.innerHTML = '';
+                initialMessage.classList.add('hidden');
+                loadingSkeleton.classList.remove('hidden');
+                toggleSummaryButtons(false);
                 
-                const recordBtn = document.getElementById('recordBtn');
-                recordBtn.textContent = 'Recording...';
-                recordBtn.classList.add('recording');
-                document.getElementById('stopBtn').disabled = false;
+                try {
+                    const summary = await summarizeWithGemini(text, key);
+                    displaySummary(summary);
+                } catch (error) {
+                    summaryContent.innerHTML = `<p class="text-red-400">Error: ${error.message || 'Could not generate summary.'}</p>`;
+                } finally {
+                    loadingSkeleton.classList.add('hidden');
+                    toggleSummaryButtons(summaryContent.innerText.trim().length > 0);
+                }
+            });
+
+            async function summarizeWithGemini(text, key) {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
                 
-                recognition.start();
-            }
-        }
-
-        function stopRecording() {
-            if (recognition && isRecording) {
-                isRecording = false;
-                recognition.stop();
+                // Enhanced system prompt for highlighting
+                const systemPrompt = `You are a medical transcription structuring tool. 
+                Task: Convert spoken clinical notes into structured headers.
+                Headers: Presenting Complaint, History of Presenting Complaint, Past Medical History, Regular Medications, Family History, Social History, Examination Findings, Investigations, Diagnosis, Plan.
                 
-                const recordBtn = document.getElementById('recordBtn');
-                recordBtn.textContent = 'Start Recording';
-                recordBtn.classList.remove('recording');
-                document.getElementById('stopBtn').disabled = true;
+                STRICT RULES:
+                1. Skip empty sections.
+                2. If you encounter a word that sounds ambiguous, phonetically unclear, or looks like a typo in context (e.g., 'muffled drug names', 'hear attack' vs 'heart attack'), wrap it in triple angle brackets like this: <<<ambiguous word>>>.
+                3. Do not omit potentially important information even if poorly dictated; highlight it instead.
+                4. Maintain clinical terminology.`;
                 
-                updateStatus('Recording stopped - Ready to generate summary', 'idle');
-            }
-        }
-
-        function updateStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = 'status ' + type;
-        }
-
-        async function generateSummary() {
-            const dictationText = document.getElementById('dictationText').value.trim();
-            
-            if (!dictationText) {
-                alert('Please record or enter some dictation first.');
-                return;
-            }
-
-            const generateBtn = document.getElementById('generateBtn');
-            const loading = document.getElementById('loading');
-            const summaryOutput = document.getElementById('summaryOutput');
-            
-            generateBtn.disabled = true;
-            generateBtn.textContent = 'Generating...';
-            loading.classList.add('active');
-            summaryOutput.textContent = 'Processing...';
-            summaryOutput.classList.remove('empty');
-
-            try {
-                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                const response = await fetch(apiUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        model: 'claude-sonnet-4-20250514',
-                        max_tokens: 1000,
-                        messages: [{
-                            role: 'user',
-                            content: `You are a medical documentation assistant. Please organize the following clinical dictation into a structured format with these exact headings:
-
-PRESENTING COMPLAINT
-HISTORY OF PRESENTING COMPLAINT
-PAST MEDICAL HISTORY
-FAMILY HISTORY
-BIRTH HISTORY
-WEIGHT AND HEIGHT (WITH CENTILES)
-EXAMINATION FINDINGS
-INVESTIGATIONS
-IMPRESSION/DIAGNOSIS
-MANAGEMENT PLAN
-
-Extract the relevant information from the dictation and place it under the appropriate heading. If a section is not mentioned in the dictation, write "Not documented" under that heading. Format the output clearly with each heading in capitals followed by the information.
-
-Here is the clinical dictation:
-
-${dictationText}`
-                        }]
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                        contents: [{ parts: [{ text: text }] }]
                     })
                 });
+                if (!response.ok) throw new Error("API Connection Failed (" + response.status + ")");
+                const result = await response.json();
+                return result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            }
 
-                const data = await response.json();
+            function displaySummary(summaryText) {
+                summaryContent.innerHTML = '';
+                const lines = summaryText.split('\n');
+                const headings = ["Presenting Complaint", "History of Presenting Complaint", "Past Medical History", "Regular Medications", "Family History", "Social History", "Examination Findings", "Investigations", "Diagnosis", "Plan"];
                 
-                if (data.content && data.content[0] && data.content[0].text) {
-                    summaryOutput.textContent = data.content[0].text;
-                } else {
-                    throw new Error('Unexpected response format');
-                }
+                lines.forEach(line => {
+                    let clean = line.trim().replace(/\*\*/g, '');
+                    if (!clean) return;
 
-            } catch (error) {
-                console.error('Error generating summary:', error);
-                summaryOutput.textContent = 'Error generating summary. Please check your connection and try again.';
-                summaryOutput.classList.add('empty');
-            } finally {
-                generateBtn.disabled = false;
-                generateBtn.textContent = 'Generate Structured Summary';
-                loading.classList.remove('active');
-            }
-        }
+                    // Process AI highlighting: convert <<<text>>> to span
+                    clean = clean.replace(/<<<(.*?)>>>/g, '<span class="typo-warning" title="Possible dictation error - verify">$1</span>');
 
-        function clearAll() {
-            if (confirm('Are you sure you want to clear all content?')) {
-                document.getElementById('dictationText').value = '';
-                document.getElementById('summaryOutput').textContent = 'Your structured clinical summary will appear here after generating...';
-                document.getElementById('summaryOutput').classList.add('empty');
-                finalTranscript = '';
-                updateStatus('Ready to record', 'idle');
-            }
-        }
-
-        function copyToClipboard() {
-            const summaryText = document.getElementById('summaryOutput').textContent;
-            
-            if (summaryText.includes('will appear here') || summaryText.includes('Processing')) {
-                alert('Please generate a summary first.');
-                return;
+                    const isHeading = headings.some(h => clean.toLowerCase().startsWith(h.toLowerCase()));
+                    
+                    if (isHeading) {
+                        const el = document.createElement('h3');
+                        el.className = 'summary-heading';
+                        el.textContent = clean.replace(/:$/, '');
+                        summaryContent.appendChild(el);
+                    } else {
+                        const el = document.createElement('p');
+                        el.className = 'mb-2 text-slate-300';
+                        el.innerHTML = clean;
+                        summaryContent.appendChild(el);
+                    }
+                });
             }
 
-            navigator.clipboard.writeText(summaryText).then(() => {
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            }).catch(err => {
-                alert('Failed to copy to clipboard');
-                console.error('Copy error:', err);
+            function toggleSummaryButtons(hasContent) {
+                [copyBtn, emailBtn, saveWordBtn, saveTxtBtn].forEach(btn => btn.disabled = !hasContent);
+            }
+
+            // Clean text for export (removes HTML tags and cleans up AI markers)
+            function getExportableText() {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = summaryContent.innerHTML;
+                
+                let text = '';
+                tempDiv.childNodes.forEach(n => {
+                    if (n.nodeName === 'H3') {
+                        text += `\n${n.textContent}\n${'-'.repeat(n.textContent.length)}\n`;
+                    } else if (n.nodeName === 'P' || n.nodeName === 'DIV') {
+                        text += `${n.textContent}\n`;
+                    }
+                });
+                return text.trim();
+            }
+
+            copyBtn.addEventListener('click', () => {
+                const text = getExportableText();
+                navigator.clipboard.writeText(text).then(() => {
+                    copyText.textContent = 'Copied!';
+                    setTimeout(() => { copyText.textContent = 'Copy'; }, 2000);
+                });
             });
-        }
+
+            saveTxtBtn.addEventListener('click', () => downloadFile(getExportableText(), 'Clinical_Summary.txt', 'text/plain'));
+            saveWordBtn.addEventListener('click', () => {
+                const html = `<html><body style="font-family:Arial"><h3>Clinical Summary</h3>${summaryContent.innerHTML}</body></html>`;
+                downloadFile(html, 'Clinical_Summary.doc', 'application/msword');
+            });
+
+            function downloadFile(content, name, type) {
+                const blob = new Blob([content], { type });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = name; a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            // Email Logic
+            emailBtn.addEventListener('click', () => {
+                const saved = localStorage.getItem('medicoDictateEmail');
+                emailInput.value = saved || '';
+                rememberEmailCheckbox.checked = !!saved;
+                emailModal.classList.remove('hidden');
+            });
+            document.getElementById('cancel-email-btn').addEventListener('click', () => emailModal.classList.add('hidden'));
+            document.getElementById('send-email-btn').addEventListener('click', () => {
+                const email = emailInput.value.trim();
+                if (!email.includes('@')) return;
+                if (rememberEmailCheckbox.checked) localStorage.setItem('medicoDictateEmail', email);
+                window.location.href = `mailto:${email}?subject=Clinical Summary&body=${encodeURIComponent(getExportableText())}`;
+                emailModal.classList.add('hidden');
+            });
+        });
     </script>
 </body>
 </html>
