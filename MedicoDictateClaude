@@ -1,1 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Dictation Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .dictation-box {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+            background: white;
+        }
+
+        .dictation-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-record {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-record:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-record.recording {
+            background: #ef4444;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .btn-stop {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            background: #4b5563;
+        }
+
+        .btn-stop:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .btn-generate {
+            background: #8b5cf6;
+            color: white;
+            grid-column: 1 / -1;
+        }
+
+        .btn-generate:hover:not(:disabled) {
+            background: #7c3aed;
+        }
+
+        .btn-generate:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #d97706;
+        }
+
+        .btn-copy {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-copy:hover {
+            background: #5568d3;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+
+        .status.idle {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+
+        .status.recording {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .status.processing {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+
+        .summary-output {
+            width: 100%;
+            min-height: 500px;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .summary-output.empty {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .info-box p {
+            color: #1e40af;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 Medical Dictation Tool</h1>
+            <p>Dictate freely - AI organizes into clinical sections</p>
+        </div>
+
+        <div class="main-content">
+            <div class="panel">
+                <h2>Free Dictation</h2>
+                
+                <textarea class="dictation-box" id="dictationText" placeholder="Click 'Start Recording' and speak your clinical notes naturally. Include presenting complaint, history, examination findings, diagnosis, and management plan. The AI will organize everything into proper sections."></textarea>
+
+                <div class="button-group">
+                    <button class="btn-record" id="recordBtn" onclick="toggleRecording()">
+                        Start Recording
+                    </button>
+                    <button class="btn-stop" id="stopBtn" onclick="stopRecording()" disabled>
+                        Stop
+                    </button>
+                </div>
+
+                <div class="status idle" id="status">
+                    Ready to record
+                </div>
+
+                <div class="button-group" style="margin-top: 20px;">
+                    <button class="btn-generate" id="generateBtn" onclick="generateSummary()">
+                        Generate Structured Summary
+                    </button>
+                </div>
+
+                <div class="info-box">
+                    <p><strong>How it works:</strong></p>
+                    <p>1. Click "Start Recording" and dictate your clinical notes naturally</p>
+                    <p>2. Click "Stop" when finished</p>
+                    <p>3. Click "Generate Structured Summary" to organize your notes</p>
+                    <p>4. Claude AI will automatically structure your dictation into clinical sections</p>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>AI is organizing your clinical notes...</p>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Structured Clinical Summary</h2>
+                
+                <div class="summary-output empty" id="summaryOutput">
+                    Your structured clinical summary will appear here after generating...
+                </div>
+
+                <div class="button-group" style="margin-top: 20px;">
+                    <button class="btn-clear" onclick="clearAll()">Clear All</button>
+                    <button class="btn-copy" onclick="copyToClipboard()">Copy Summary</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let recognition;
+        let isRecording = false;
+        let finalTranscript = '';
+
+        // Initialize speech recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-GB';
+
+            recognition.onstart = () => {
+                console.log('Speech recognition started');
+                updateStatus('Recording...', 'recording');
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                document.getElementById('dictationText').value = finalTranscript + interimTranscript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                updateStatus('Error: ' + event.error, 'idle');
+                stopRecording();
+            };
+
+            recognition.onend = () => {
+                if (isRecording) {
+                    recognition.start();
+                } else {
+                    updateStatus('Ready to record', 'idle');
+                }
+            };
+        } else {
+            alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+        }
+
+        function toggleRecording() {
+            if (!recognition) {
+                alert('Speech recognition not available');
+                return;
+            }
+
+            if (!isRecording) {
+                isRecording = true;
+                finalTranscript = document.getElementById('dictationText').value;
+                
+                const recordBtn = document.getElementById('recordBtn');
+                recordBtn.textContent = 'Recording...';
+                recordBtn.classList.add('recording');
+                document.getElementById('stopBtn').disabled = false;
+                
+                recognition.start();
+            }
+        }
+
+        function stopRecording() {
+            if (recognition && isRecording) {
+                isRecording = false;
+                recognition.stop();
+                
+                const recordBtn = document.getElementById('recordBtn');
+                recordBtn.textContent = 'Start Recording';
+                recordBtn.classList.remove('recording');
+                document.getElementById('stopBtn').disabled = true;
+                
+                updateStatus('Recording stopped - Ready to generate summary', 'idle');
+            }
+        }
+
+        function updateStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+
+        async function generateSummary() {
+            const dictationText = document.getElementById('dictationText').value.trim();
+            
+            if (!dictationText) {
+                alert('Please record or enter some dictation first.');
+                return;
+            }
+
+            const generateBtn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const summaryOutput = document.getElementById('summaryOutput');
+            
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            loading.classList.add('active');
+            summaryOutput.textContent = 'Processing...';
+            summaryOutput.classList.remove('empty');
+
+            try {
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514',
+                        max_tokens: 1000,
+                        messages: [{
+                            role: 'user',
+                            content: `You are a medical documentation assistant. Please organize the following clinical dictation into a structured format with these exact headings:
+
+PRESENTING COMPLAINT
+HISTORY OF PRESENTING COMPLAINT
+PAST MEDICAL HISTORY
+FAMILY HISTORY
+BIRTH HISTORY
+WEIGHT AND HEIGHT (WITH CENTILES)
+EXAMINATION FINDINGS
+INVESTIGATIONS
+IMPRESSION/DIAGNOSIS
+MANAGEMENT PLAN
+
+Extract the relevant information from the dictation and place it under the appropriate heading. If a section is not mentioned in the dictation, write "Not documented" under that heading. Format the output clearly with each heading in capitals followed by the information.
+
+Here is the clinical dictation:
+
+${dictationText}`
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.content && data.content[0] && data.content[0].text) {
+                    summaryOutput.textContent = data.content[0].text;
+                } else {
+                    throw new Error('Unexpected response format');
+                }
+
+            } catch (error) {
+                console.error('Error generating summary:', error);
+                summaryOutput.textContent = 'Error generating summary. Please check your connection and try again.';
+                summaryOutput.classList.add('empty');
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Structured Summary';
+                loading.classList.remove('active');
+            }
+        }
+
+        function clearAll() {
+            if (confirm('Are you sure you want to clear all content?')) {
+                document.getElementById('dictationText').value = '';
+                document.getElementById('summaryOutput').textContent = 'Your structured clinical summary will appear here after generating...';
+                document.getElementById('summaryOutput').classList.add('empty');
+                finalTranscript = '';
+                updateStatus('Ready to record', 'idle');
+            }
+        }
+
+        function copyToClipboard() {
+            const summaryText = document.getElementById('summaryOutput').textContent;
+            
+            if (summaryText.includes('will appear here') || summaryText.includes('Processing')) {
+                alert('Please generate a summary first.');
+                return;
+            }
+
+            navigator.clipboard.writeText(summaryText).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy to clipboard');
+                console.error('Copy error:', err);
+            });
+        }
+    </script>
+</body>
+</html>
